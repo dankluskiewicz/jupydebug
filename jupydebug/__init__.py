@@ -1,13 +1,68 @@
-
 import warnings
 import sys
 
 
+class Context:
+    '''
+    expand on the methods for a python frame
+    '''
+    def __init__(self, frame):
+        self._frame = frame
+
+    def __repr__(self):
+        return f'Context for {self.file_name} calling\n\t'\
+               f'{self.method_name} @ line {self.line_num}'
+
+    @property
+    def line_num(self):
+        return self._frame.f_lineno
+
+    @property
+    def file_name(self):
+        return self._frame.f_code.co_filename
+
+    @property
+    def method_name(self):
+        return self._frame.f_code.co_name
+
+    @property
+    def locals(self):
+        return self._frame.f_locals
+
+    @property
+    def globals(self):
+        return self._frame.f_globals
+
+
+def post_mortem(traceback=None):
+    if traceback is None:
+        traceback = sys.last_traceback
+    return get_contexts(traceback)
+
+
+def get_contexts(traceback=None, frame=None):
+    contexts = []
+    # TODO: traceback vs frame input
+    # consider adding method to generate contexts from e.g. sys._getframe()
+    if frame is not None:
+        raise NotImplementedError()
+    while True:
+        contexts.append((Context(traceback.tb_frame)))
+        traceback = traceback.tb_next
+        if not traceback:
+            break
+    return contexts[::-1]
+
+
 class Debugger:
     '''
-    a decorator class that will catch exceptions from the decorated function,
-    and provide access to the functions global and (when possible) local
-    namespaces
+    a decorator class that will catch exceptions from the decorated method,
+    and provide access to the collection of contexts within the
+    exception-raising method and its parents.
+
+    TODO: this class has been made largely obsolete by the post_mortem()
+    function. It may be useful if I incorporate a break-point type method
+    into this package and use this class to manage it.
     '''
 
     def __init__(self, func):
@@ -19,58 +74,9 @@ class Debugger:
 
         except Exception as e:
             self.exception = e
-            self.frames = get_frames(self.exception.__traceback__)
+            self.contexts = get_contexts(self.exception.__traceback__)
             warnings.warn(
                 '\n' + '-*' * 15 + '\n'
-                f'debugger caught exception @ {self._func.__name__}'
+                f'debugger caught exception @ {self.contexts[0]}'
                 '\n' + '-*' * 15 + '\n')
-            print('')
-            raise e
-
-
-class Frame:
-    '''
-    expand on the methods for a traceback frame
-    '''
-    def __init__(self, tb_frame):
-        self._tb_frame = tb_frame
-
-    def __repr__(self):
-        return f'jupyterdebug Frame for {self.file_name} calling\n\t'\
-               f'{self.method_name} @ line {self.line_num}'
-
-    @property
-    def line_num(self):
-        return self._tb_frame.f_lineno
-
-    @property
-    def file_name(self):
-        return self._tb_frame.f_code.co_filename
-
-    @property
-    def method_name(self):
-        return self._tb_frame.f_code.co_name
-
-    @property
-    def locals(self):
-        return self._tb_frame.f_locals
-
-    @property
-    def globals(self):
-        return self._tb_frame.f_globals
-
-
-def post_mortem():
-    last_traceback = sys.last_traceback()
-    # TODO
-
-
-def get_frames(traceback=None, frames=None):
-    frames = []
-    # TODO: tb vs frames input
-    while True:
-        frames.append((Frame(traceback.tb_frame)))
-        traceback = traceback.tb_next
-        if not traceback:
-            break
-    return frames
+            return self
