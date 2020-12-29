@@ -24,6 +24,17 @@ def parent_function(func, *args, **kwargs):
     return func(*args, **kwargs)
 
 
+def nested_funcs():
+    nf_local_var = 'nf_local_var'
+    return parent_function(failing_test)
+
+
+def get_frame():
+    a_local_var = 'a_local_var'
+    import sys
+    return sys._getframe()
+
+
 @pytest.fixture
 def failing_test_debugger():
     with pytest.raises(IndexError):
