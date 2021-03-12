@@ -1,12 +1,17 @@
 import warnings
 import sys
+import pandas as pd
 
 
 class Context:
     '''
-    expand on the methods for a python frame
+    expand on the methods for a python traceback frame
     '''
     def __init__(self, frame):
+        '''
+        args:
+            frame (traceback.tb_frame)
+        '''
         self._frame = frame
 
     def __repr__(self):
@@ -41,17 +46,37 @@ def post_mortem(traceback=None):
 
 
 def get_contexts(traceback=None, frame=None):
-    contexts = []
     # TODO: traceback vs frame input
     # consider adding method to generate contexts from e.g. sys._getframe()
     if frame is not None:
         raise NotImplementedError()
+    contexts = []
     while True:
         contexts.append((Context(traceback.tb_frame)))
         traceback = traceback.tb_next
         if not traceback:
             break
-    return contexts[::-1]
+    return Contexts(contexts[::-1])
+
+
+class Contexts(list):
+    '''
+    this class exists to provide an easy visual for a context stack
+    '''
+
+    def __repr__(self):
+        return self.to_df().__repr__()
+
+    def _repr_html_(self):
+        return self.to_df()._repr_html_()
+
+    def to_df(self):
+        return pd.DataFrame({
+            'file': [ctx.file_name for ctx in self],
+            'line': [ctx.line_num for ctx in self],
+            'calling': [ctx.method_name for ctx in self],
+            'locals': [ctx.locals.keys() for ctx in self],
+        })
 
 
 class Debugger:

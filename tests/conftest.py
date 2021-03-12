@@ -16,7 +16,7 @@ def failing_test():
 def passing_test():
     a_local_var = "passing_test's local var"
     x = range(3)
-    y = x[2]  # this will raise an exception
+    y = x[2]
     return y
 
 

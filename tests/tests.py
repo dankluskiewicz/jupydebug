@@ -18,11 +18,6 @@ def test_post_mortem_contexts(failing_test_pm_contexts,
     assert 'a_global_var' in contexts[2].globals.keys()
 
 
-def test_debugger_wraps_functions(failing_test_debugger):
-    # test implemented in fixture
-    pass
-
-
 def test_debugger_captures_contexts(failing_test_db_contexts):
     contexts = failing_test_db_contexts
     bottom_context = contexts[0]
