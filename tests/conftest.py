@@ -39,12 +39,12 @@ def failing_test_debugger():
 
 
 @pytest.fixture
-def failing_test_db_contexts(failing_test_debugger):
-    return failing_test_debugger.contexts
+def failing_test_db_frames(failing_test_debugger):
+    return failing_test_debugger.frames
 
 
 @pytest.fixture
-def failing_test_pm_contexts():
+def failing_test_pm_frames():
     try:
         failing_test()
     except IndexError as ie:
@@ -52,7 +52,7 @@ def failing_test_pm_contexts():
 
 
 @pytest.fixture
-def nested_test_pm_contexts():
+def nested_test_pm_frames():
     try:
         nested_test()
     except IndexError as ie:

@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 
 
-class Context:
+class Frame:
     '''
     expand on the methods for a python traceback frame
     '''
@@ -15,7 +15,7 @@ class Context:
         self._frame = frame
 
     def __repr__(self):
-        return f'Context for {self.file_name} calling\n\t'\
+        return f'Frame for {self.file_name} calling\n\t'\
                f'{self.method_name} @ line {self.line_num}'
 
     @property
@@ -42,26 +42,26 @@ class Context:
 def post_mortem(traceback=None):
     if traceback is None:
         traceback = sys.last_traceback
-    return get_contexts(traceback)
+    return get_frames(traceback)
 
 
-def get_contexts(traceback=None, frame=None):
+def get_frames(traceback=None, frame=None):
     # TODO: traceback vs frame input
-    # consider adding method to generate contexts from e.g. sys._getframe()
+    # consider adding method to generate frames from e.g. sys._getframe()
     if frame is not None:
         raise NotImplementedError()
-    contexts = []
+    frames = []
     while True:
-        contexts.append((Context(traceback.tb_frame)))
+        frames.append((Frame(traceback.tb_frame)))
         traceback = traceback.tb_next
         if not traceback:
             break
-    return Contexts(contexts[::-1])
+    return Frames(frames[::-1])
 
 
-class Contexts(list):
+class Frames(list):
     '''
-    this class exists to provide an easy visual for a context stack
+    this class exists to provide an easy visual for a frame stack
     '''
 
     def __repr__(self):
@@ -72,17 +72,17 @@ class Contexts(list):
 
     def to_df(self):
         return pd.DataFrame({
-            'file': [ctx.file_name for ctx in self],
-            'line': [ctx.line_num for ctx in self],
-            'calling': [ctx.method_name for ctx in self],
-            'locals': [ctx.locals.keys() for ctx in self],
+            'file': [frame.file_name for frame in self],
+            'line': [frame.line_num for frame in self],
+            'calling': [frame.method_name for frame in self],
+            'locals': [frame.locals.keys() for frame in self],
         })
 
 
 class Debugger:
     '''
     a decorator class that will catch exceptions from the decorated method,
-    and provide access to the collection of contexts within the
+    and provide access to the collection of frames within the
     exception-raising method and its parents.
 
     TODO: this class has been made largely obsolete by the post_mortem()
@@ -99,9 +99,9 @@ class Debugger:
 
         except Exception as e:
             self.exception = e
-            self.contexts = get_contexts(self.exception.__traceback__)
+            self.frames = get_frames(self.exception.__traceback__)
             warnings.warn(
                 '\n' + '-*' * 15 + '\n'
-                f'debugger caught exception @ {self.contexts[0]}'
+                f'debugger caught exception @ {self.frames[0]}'
                 '\n' + '-*' * 15 + '\n')
             return self

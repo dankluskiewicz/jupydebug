@@ -1,5 +1,7 @@
 # jupydebug
 
+This package provides easy access to all objects throughout an Exception traceback stack. It mimics the behavior of the post_mortem function in Python's built-in debugger (pdb), but let's the user interact with traceback object directly within a jupyter notebook as opposed to the pdb interpreter. Following an exception, run post_mortem() to inspect frames from the traceback stack. For example:
+
 ```python
 a_failing_test()
 ```
@@ -39,11 +41,11 @@ IndexError: range object index out of range
 get access to the traceback stack with jupydebug's post_mortem function:
 
 ```python
-contexts = jpdb.post_mortem()
+frames = jpdb.post_mortem()
 ```
 inspect the stack:
 ```python
-contexts
+frames
 ```
 
 <table border="1" class="dataframe">
@@ -95,10 +97,10 @@ contexts
   </tbody>
 </table>
 
-and access the local or global variables in each context with
+and access the local or global variables in each frame with e.g. 
 
 ```python
-contexts[0].locals
+frames[0].locals
 ```
 
 ```
@@ -106,7 +108,7 @@ contexts[0].locals
 ```
 
 ```python
-contexts[0].globals
+frames[0].globals
 ```
 
 ```
